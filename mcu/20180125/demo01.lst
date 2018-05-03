@@ -1,0 +1,253 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 3.5.0 #9253 (Mar 24 2016) (Linux)
+                                      4 ; This file was generated Thu Jan 25 18:43:52 2018
+                                      5 ;--------------------------------------------------------
+                                      6 	.module demo01
+                                      7 	.optsdcc -mmcs51 --model-small
+                                      8 	
+                                      9 ;--------------------------------------------------------
+                                     10 ; Public variables in this module
+                                     11 ;--------------------------------------------------------
+                                     12 	.globl _main
+                                     13 	.globl _clock
+                                     14 	.globl _clockinc
+                                     15 	.globl _IE
+                                     16 	.globl _TH0
+                                     17 	.globl _TL0
+                                     18 	.globl _TMOD
+                                     19 	.globl _TCON
+                                     20 	.globl _P3
+                                     21 	.globl _clock_time
+                                     22 	.globl _clock_update
+                                     23 ;--------------------------------------------------------
+                                     24 ; special function registers
+                                     25 ;--------------------------------------------------------
+                                     26 	.area RSEG    (ABS,DATA)
+      000000                         27 	.org 0x0000
+                           0000B0    28 _P3	=	0x00b0
+                           000088    29 _TCON	=	0x0088
+                           000089    30 _TMOD	=	0x0089
+                           00008A    31 _TL0	=	0x008a
+                           00008C    32 _TH0	=	0x008c
+                           0000A8    33 _IE	=	0x00a8
+                                     34 ;--------------------------------------------------------
+                                     35 ; special function bits
+                                     36 ;--------------------------------------------------------
+                                     37 	.area RSEG    (ABS,DATA)
+      000000                         38 	.org 0x0000
+                                     39 ;--------------------------------------------------------
+                                     40 ; overlayable register banks
+                                     41 ;--------------------------------------------------------
+                                     42 	.area REG_BANK_0	(REL,OVR,DATA)
+      000000                         43 	.ds 8
+                                     44 ;--------------------------------------------------------
+                                     45 ; internal ram data
+                                     46 ;--------------------------------------------------------
+                                     47 	.area DSEG    (DATA)
+      000000                         48 _clock_update::
+      000000                         49 	.ds 1
+      000001                         50 _clock_time::
+      000001                         51 	.ds 4
+                                     52 ;--------------------------------------------------------
+                                     53 ; overlayable items in internal ram 
+                                     54 ;--------------------------------------------------------
+                                     55 	.area	OSEG    (OVR,DATA)
+                                     56 ;--------------------------------------------------------
+                                     57 ; Stack segment in internal ram 
+                                     58 ;--------------------------------------------------------
+                                     59 	.area	SSEG
+      000000                         60 __start__stack:
+      000000                         61 	.ds	1
+                                     62 
+                                     63 ;--------------------------------------------------------
+                                     64 ; indirectly addressable internal ram data
+                                     65 ;--------------------------------------------------------
+                                     66 	.area ISEG    (DATA)
+                                     67 ;--------------------------------------------------------
+                                     68 ; absolute internal ram data
+                                     69 ;--------------------------------------------------------
+                                     70 	.area IABS    (ABS,DATA)
+                                     71 	.area IABS    (ABS,DATA)
+                                     72 ;--------------------------------------------------------
+                                     73 ; bit data
+                                     74 ;--------------------------------------------------------
+                                     75 	.area BSEG    (BIT)
+                                     76 ;--------------------------------------------------------
+                                     77 ; paged external ram data
+                                     78 ;--------------------------------------------------------
+                                     79 	.area PSEG    (PAG,XDATA)
+                                     80 ;--------------------------------------------------------
+                                     81 ; external ram data
+                                     82 ;--------------------------------------------------------
+                                     83 	.area XSEG    (XDATA)
+                                     84 ;--------------------------------------------------------
+                                     85 ; absolute external ram data
+                                     86 ;--------------------------------------------------------
+                                     87 	.area XABS    (ABS,XDATA)
+                                     88 ;--------------------------------------------------------
+                                     89 ; external initialized ram data
+                                     90 ;--------------------------------------------------------
+                                     91 	.area XISEG   (XDATA)
+                                     92 	.area HOME    (CODE)
+                                     93 	.area GSINIT0 (CODE)
+                                     94 	.area GSINIT1 (CODE)
+                                     95 	.area GSINIT2 (CODE)
+                                     96 	.area GSINIT3 (CODE)
+                                     97 	.area GSINIT4 (CODE)
+                                     98 	.area GSINIT5 (CODE)
+                                     99 	.area GSINIT  (CODE)
+                                    100 	.area GSFINAL (CODE)
+                                    101 	.area CSEG    (CODE)
+                                    102 ;--------------------------------------------------------
+                                    103 ; interrupt vector 
+                                    104 ;--------------------------------------------------------
+                                    105 	.area HOME    (CODE)
+      000000                        106 __interrupt_vect:
+      000000 02r00r00         [24]  107 	ljmp	__sdcc_gsinit_startup
+      000003 32               [24]  108 	reti
+      000004                        109 	.ds	7
+      00000B 02r00r00         [24]  110 	ljmp	_clockinc
+                                    111 ;--------------------------------------------------------
+                                    112 ; global & static initialisations
+                                    113 ;--------------------------------------------------------
+                                    114 	.area HOME    (CODE)
+                                    115 	.area GSINIT  (CODE)
+                                    116 	.area GSFINAL (CODE)
+                                    117 	.area GSINIT  (CODE)
+                                    118 	.globl __sdcc_gsinit_startup
+                                    119 	.globl __sdcc_program_startup
+                                    120 	.globl __start__stack
+                                    121 	.globl __mcs51_genXINIT
+                                    122 	.globl __mcs51_genXRAMCLEAR
+                                    123 	.globl __mcs51_genRAMCLEAR
+                                    124 	.area GSFINAL (CODE)
+      000000 02r00r0E         [24]  125 	ljmp	__sdcc_program_startup
+                                    126 ;--------------------------------------------------------
+                                    127 ; Home
+                                    128 ;--------------------------------------------------------
+                                    129 	.area HOME    (CODE)
+                                    130 	.area HOME    (CODE)
+      00000E                        131 __sdcc_program_startup:
+      00000E 02r00r3E         [24]  132 	ljmp	_main
+                                    133 ;	return from main will return to caller
+                                    134 ;--------------------------------------------------------
+                                    135 ; code
+                                    136 ;--------------------------------------------------------
+                                    137 	.area CSEG    (CODE)
+                                    138 ;------------------------------------------------------------
+                                    139 ;Allocation info for local variables in function 'clockinc'
+                                    140 ;------------------------------------------------------------
+                                    141 ;	demo01.c:27: void clockinc(void) __interrupt(1)
+                                    142 ;	-----------------------------------------
+                                    143 ;	 function clockinc
+                                    144 ;	-----------------------------------------
+      000000                        145 _clockinc:
+                           000007   146 	ar7 = 0x07
+                           000006   147 	ar6 = 0x06
+                           000005   148 	ar5 = 0x05
+                           000004   149 	ar4 = 0x04
+                           000003   150 	ar3 = 0x03
+                           000002   151 	ar2 = 0x02
+                           000001   152 	ar1 = 0x01
+                           000000   153 	ar0 = 0x00
+      000000 C0 E0            [24]  154 	push	acc
+      000002 C0 D0            [24]  155 	push	psw
+                                    156 ;	demo01.c:29: RESETTIMER(65536-922);
+      000004 75 8C FD         [24]  157 	mov	_TH0,#0xFD
+      000007 75 8A 63         [24]  158 	mov	_TL0,#0x63
+                                    159 ;	demo01.c:30: clock_time++;
+      00000A 74 01            [12]  160 	mov	a,#0x01
+      00000C 25*01            [12]  161 	add	a,_clock_time
+      00000E F5*01            [12]  162 	mov	_clock_time,a
+      000010 E4               [12]  163 	clr	a
+      000011 35*02            [12]  164 	addc	a,(_clock_time + 1)
+      000013 F5*02            [12]  165 	mov	(_clock_time + 1),a
+      000015 E4               [12]  166 	clr	a
+      000016 35*03            [12]  167 	addc	a,(_clock_time + 2)
+      000018 F5*03            [12]  168 	mov	(_clock_time + 2),a
+      00001A E4               [12]  169 	clr	a
+      00001B 35*04            [12]  170 	addc	a,(_clock_time + 3)
+      00001D F5*04            [12]  171 	mov	(_clock_time + 3),a
+                                    172 ;	demo01.c:31: clock_update=1;
+      00001F 75*00 01         [24]  173 	mov	_clock_update,#0x01
+      000022 D0 D0            [24]  174 	pop	psw
+      000024 D0 E0            [24]  175 	pop	acc
+      000026 32               [24]  176 	reti
+                                    177 ;	eliminated unneeded mov psw,# (no regs used in bank)
+                                    178 ;	eliminated unneeded push/pop dpl
+                                    179 ;	eliminated unneeded push/pop dph
+                                    180 ;	eliminated unneeded push/pop b
+                                    181 ;------------------------------------------------------------
+                                    182 ;Allocation info for local variables in function 'clock'
+                                    183 ;------------------------------------------------------------
+                                    184 ;ctmp                      Allocated to registers r4 r5 r6 r7 
+                                    185 ;------------------------------------------------------------
+                                    186 ;	demo01.c:34: unsigned long clock(void)
+                                    187 ;	-----------------------------------------
+                                    188 ;	 function clock
+                                    189 ;	-----------------------------------------
+      000027                        190 _clock:
+                                    191 ;	demo01.c:38: do
+      000027                        192 00101$:
+                                    193 ;	demo01.c:40: clock_update=0;
+      000027 75*00 00         [24]  194 	mov	_clock_update,#0x00
+                                    195 ;	demo01.c:41: ctmp=clock_time;
+      00002A AC*01            [24]  196 	mov	r4,_clock_time
+      00002C AD*02            [24]  197 	mov	r5,(_clock_time + 1)
+      00002E AE*03            [24]  198 	mov	r6,(_clock_time + 2)
+      000030 AF*04            [24]  199 	mov	r7,(_clock_time + 3)
+                                    200 ;	demo01.c:42: }while(clock_update);
+      000032 E5*00            [12]  201 	mov	a,_clock_update
+      000034 70 F1            [24]  202 	jnz	00101$
+                                    203 ;	demo01.c:44: return ctmp;
+      000036 8C 82            [24]  204 	mov	dpl,r4
+      000038 8D 83            [24]  205 	mov	dph,r5
+      00003A 8E F0            [24]  206 	mov	b,r6
+      00003C EF               [12]  207 	mov	a,r7
+      00003D 22               [24]  208 	ret
+                                    209 ;------------------------------------------------------------
+                                    210 ;Allocation info for local variables in function 'main'
+                                    211 ;------------------------------------------------------------
+                                    212 ;	demo01.c:47: void main(void)
+                                    213 ;	-----------------------------------------
+                                    214 ;	 function main
+                                    215 ;	-----------------------------------------
+      00003E                        216 _main:
+                                    217 ;	demo01.c:50: RESETTIMER(65536-922);
+      00003E 75 8C FD         [24]  218 	mov	_TH0,#0xFD
+      000041 75 8A 63         [24]  219 	mov	_TL0,#0x63
+                                    220 ;	demo01.c:51: STARTTIMER();
+      000044 75 89 01         [24]  221 	mov	_TMOD,#0x01
+      000047 43 A8 82         [24]  222 	orl	_IE,#0x82
+      00004A 43 88 10         [24]  223 	orl	_TCON,#0x10
+                                    224 ;	demo01.c:53: while(1){
+      00004D                        225 00102$:
+                                    226 ;	demo01.c:54: P3=~(clock()/1000)&0xFF;
+      00004D 12r00r27         [24]  227 	lcall	_clock
+      000050 AC 82            [24]  228 	mov	r4,dpl
+      000052 AD 83            [24]  229 	mov	r5,dph
+      000054 AE F0            [24]  230 	mov	r6,b
+      000056 FF               [12]  231 	mov	r7,a
+      000057 75*00 E8         [24]  232 	mov	__divulong_PARM_2,#0xE8
+      00005A 75*01 03         [24]  233 	mov	(__divulong_PARM_2 + 1),#0x03
+      00005D E4               [12]  234 	clr	a
+      00005E F5*02            [12]  235 	mov	(__divulong_PARM_2 + 2),a
+      000060 F5*03            [12]  236 	mov	(__divulong_PARM_2 + 3),a
+      000062 8C 82            [24]  237 	mov	dpl,r4
+      000064 8D 83            [24]  238 	mov	dph,r5
+      000066 8E F0            [24]  239 	mov	b,r6
+      000068 EF               [12]  240 	mov	a,r7
+      000069 12r00r00         [24]  241 	lcall	__divulong
+      00006C AC 82            [24]  242 	mov	r4,dpl
+      00006E AD 83            [24]  243 	mov	r5,dph
+      000070 AE F0            [24]  244 	mov	r6,b
+      000072 FF               [12]  245 	mov	r7,a
+      000073 EC               [12]  246 	mov	a,r4
+      000074 F4               [12]  247 	cpl	a
+      000075 F5 B0            [12]  248 	mov	_P3,a
+      000077 80 D4            [24]  249 	sjmp	00102$
+                                    250 	.area CSEG    (CODE)
+                                    251 	.area CONST   (CODE)
+                                    252 	.area XINIT   (CODE)
+                                    253 	.area CABS    (ABS,CODE)

@@ -1,0 +1,60 @@
+@charset "UTF-8";
+
+*{margin: 0;padding: 0;box-sizing: border-box;-webkit-box-sizing: border-box;}
+html,body{width: 100%;height: 100%;font-size: 16px;overflow: hidden;}
+
+.app{
+    width: 100%;
+    height: 100%;
+    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+}
+
+.head{
+    position: relative;
+    top: 0px;
+    width: 100%;
+    height: 64px;
+    background-color:#3F51B5;
+    box-shadow: 0 0 5px #3F51B5;
+    z-index: 2;
+}
+.head>.title{
+    position: absolute;
+    display: inline-block;
+    line-height: 32px;
+    margin-top: -16px;
+    margin-left: 16px;
+    font-size: 22px;
+    color:#FFF;
+    top: 50%;
+}
+.head>.menu{
+    position: absolute;
+    display: inline-block;
+    line-height: 32px;
+    margin-top: -16px;
+    margin-right: 16px;
+    font-size: 22px;
+    color: #FFF;
+    top: 50%;
+    right: 0%;
+}
+
+.content{
+    position: absolute;
+    top: 64px;
+    width: 100%;
+    height: calc(100% - 64px);
+    z-index: 1;
+    overflow-y: scroll;
+}
+
+.demo{
+    float: left;
+    width: 72px;
+    height: 720px;
+    background: #F0F;
+}
+
+
