@@ -2,13 +2,14 @@ package zz.yy.xx.color;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class ColorRemap {
@@ -196,6 +197,26 @@ public class ColorRemap {
 		}
 	}
 
+	public static void findTupleIndex(Tuple tuple, List<Tuple> map) {
+		int index = 0;
+		int distance = Integer.MAX_VALUE;
+
+		for (int i = 0, l = map.size(); i < l; ++i) {
+			Tuple item = map.get(i);
+			int dist = (int) Math.sqrt(
+					Math.pow(tuple.r - item.r, 2) + 
+					Math.pow(tuple.g - item.g, 2) + 
+					Math.pow(tuple.b - item.b, 2));
+
+			if (dist < distance) {
+				index = i;
+				distance = dist;
+			}
+		}
+
+		tuple.index = index;
+	}
+
 	public static void medianCut(int index, TupleBox[] boxes) {
 		TupleBox box = boxes[index];
 		if (box.count <= 1) {
@@ -244,34 +265,30 @@ public class ColorRemap {
 			return pixels;
 		}
 
-		TupleBox[] boxes = new TupleBox[limit];
+		ArrayList<Tuple> colormap = new ArrayList<>();
 		{
+			TupleBox[] boxes = new TupleBox[limit];
 			boxes[0] = new TupleBox(0, limit);
 			boxes[0].addAll(map.values());
 
 			for (int i = 0; i < limit; i++) {
 				medianCut(i, boxes);
 				boxes[i].dump();
-			}
-
-			Arrays.sort(boxes, new Comparator<TupleBox>() {
-				@Override
-				public int compare(TupleBox o1, TupleBox o2) {
-					return o1.value.compareTo(o2.value);
-				}
-			});
-
-			for (int i = 0; i < limit; ++i) {
-				boxes[i].start = i;
-				boxes[i].frozen();
+				colormap.add(boxes[i].value);
 			}
 		}
 
-		// saveColorMap(boxes);
-		int index;
-		for (int i = 0, l = pixels.length; i < l; i++) {
-			index = map.get(pixels[i] & 0xFFFFFF).index;
-			pixels[i] = boxes[index].value.argb();
+		{
+			Tuple tuple;
+			for (int i = 0, l = pixels.length; i < l; ++i) {
+				tuple = map.get(pixels[i] & 0xFFFFFF);
+				if (colormap.contains(tuple)) {
+					continue;
+				}
+				findTupleIndex(tuple, colormap);
+
+				pixels[i] = colormap.get(tuple.index).argb();
+			}
 		}
 
 		return pixels;
