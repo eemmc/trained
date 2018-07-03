@@ -8,10 +8,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
-int remap(int32_t *pixels, size_t size);
-
-
+int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
+		int32_t **dist);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

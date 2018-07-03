@@ -3,14 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-
 #include <limits.h>
 
-
 #define COLOR_SIZE 256
-
-
 
 struct _tuple {
 	int32_t r;
@@ -24,7 +19,6 @@ struct _tuple_node {
 	struct _tuple *value;
 	struct _tuple_node *next;
 };
-
 
 struct _tuple_map {
 	struct _tuple_node **buckets;
@@ -46,7 +40,6 @@ struct _tuple_box {
 uint32_t tuple_map_index(uint32_t key, size_t capacity) {
 	return key & (capacity - 1);
 }
-
 
 void tuple_map_reset(struct _tuple_map *map, size_t capacity) {
 
@@ -76,40 +69,25 @@ void tuple_map_reset(struct _tuple_map *map, size_t capacity) {
 	free(temp);
 }
 
-void tuple_map_free(struct _tuple_map *map) {
-	size_t i;
-	struct _tuple_node *item;
-	struct _tuple_node *swap;
-	for (i = 0; i < map->capacity; ++i) {
-		item = map->buckets[i];
-		while (item != NULL) {
-			swap = item->next;
-			free(item->value);
-			free(item);
-			item = swap;
-		}
-	}
 
-	free(map->buckets);
-	map->buckets = NULL;
-	map->size = 0;
-}
+
+
+
+
 
 struct _tuple *tuple_map_get_tuple(struct _tuple_map *map, uint32_t key) {
+
+	struct _tuple_node *item;
+
 	uint32_t hash = tuple_map_index(key, map->capacity);
-
-	struct _tuple_node *item = map->buckets[hash];
-
-	while (item != NULL) {
+	for (item = map->buckets[hash]; item != NULL; item = item->next) {
 		if (item->key == key) {
 			return item->value;
 		}
-		item = item->next;
 	}
 
 	return NULL;
 }
-
 
 void tuple_map_add_tuple(struct _tuple_map *map, uint32_t key,
 		struct _tuple *tuple) {
@@ -136,7 +114,6 @@ void tuple_map_add_tuple(struct _tuple_map *map, uint32_t key,
 	map->size += 1;
 }
 
-
 void tuple_map_copy_tuple(struct _tuple_map *map, struct _tuple_box *box) {
 
 	struct _tuple_node *head;
@@ -147,8 +124,8 @@ void tuple_map_copy_tuple(struct _tuple_map *map, struct _tuple_box *box) {
 	for (i = 0; i < map->capacity; ++i) {
 		item = map->buckets[i];
 		while (item != NULL) {
-			swap=(struct _tuple_node*)malloc(sizeof(struct _tuple_node));
-			swap->value=item->value;
+			swap = (struct _tuple_node*) malloc(sizeof(struct _tuple_node));
+			swap->value = item->value;
 			if (box->data == NULL) {
 				box->data = head = swap;
 			} else {
@@ -163,6 +140,44 @@ void tuple_map_copy_tuple(struct _tuple_map *map, struct _tuple_box *box) {
 }
 
 
+void tuple_box_free(struct _tuple_box **boxes, size_t size) {
+
+	size_t i;
+	struct _tuple_node *item;
+	struct _tuple_node *swap;
+	for (i = 0; i < size; ++i) {
+		item = boxes[i]->data;
+		while (item != NULL) {
+			swap = item->next;
+			free(item);
+			item = swap;
+		}
+		free(boxes[i]);
+	}
+
+	free(boxes);
+}
+
+void tuple_map_free(struct _tuple_map *map) {
+	size_t i;
+	struct _tuple_node *item;
+	struct _tuple_node *swap;
+	for (i = 0; i < map->capacity; ++i) {
+		item = map->buckets[i];
+		while (item != NULL) {
+			swap = item->next;
+			free(item->value);
+			free(item);
+			item = swap;
+		}
+	}
+
+	free(map->buckets);
+	map->buckets = NULL;
+	map->size = 0;
+}
+
+
 struct _tuple * tuple_create(uint32_t pixel) {
 	struct _tuple *item = (struct _tuple*) malloc(sizeof(struct _tuple));
 
@@ -174,67 +189,64 @@ struct _tuple * tuple_create(uint32_t pixel) {
 	return item;
 }
 
-uint32_t tuple_to_rgb(struct _tuple *tuple) {
-
-	return tuple->g | (tuple->g << 8) | (tuple->r << 16);
-}
-
-
-void tuple_box_median_sort_each(struct _tuple *tuple, struct _tuple_box *boxes) {
-	if (tuple->r > boxes->limit[0]) {
-		boxes->limit[0] = tuple->r;
-	} else if (tuple->r < boxes->limit[1]) {
-		boxes->limit[1] = tuple->r;
+void tuple_box_median_sort_each(struct _tuple *tuple, struct _tuple_box *box) {
+	if (tuple->r > box->limit[0]) {
+		box->limit[0] = tuple->r;
+	} else if (tuple->r < box->limit[1]) {
+		box->limit[1] = tuple->r;
 	} else {
-		boxes->limit[0] = boxes->limit[1] = tuple->r;
+		box->limit[0] = box->limit[1] = tuple->r;
 	}
 
-	if (tuple->g > boxes->limit[2]) {
-		boxes->limit[2] = tuple->g;
-	} else if (tuple->g < boxes->limit[3]) {
-		boxes->limit[3] = tuple->g;
+	if (tuple->g > box->limit[2]) {
+		box->limit[2] = tuple->g;
+	} else if (tuple->g < box->limit[3]) {
+		box->limit[3] = tuple->g;
 	} else {
-		boxes->limit[2] = boxes->limit[3] = tuple->g;
+		box->limit[2] = box->limit[3] = tuple->g;
 	}
 
-	if (tuple->b > boxes->limit[4]) {
-		boxes->limit[4] = tuple->b;
-	} else if (tuple->b < boxes->limit[5]) {
-		boxes->limit[5] = tuple->b;
+	if (tuple->b > box->limit[4]) {
+		box->limit[4] = tuple->b;
+	} else if (tuple->b < box->limit[5]) {
+		box->limit[5] = tuple->b;
 	} else {
-		boxes->limit[4] = boxes->limit[5] = tuple->b;
+		box->limit[4] = box->limit[5] = tuple->b;
 	}
 
 }
 
-int tuple_box_median_sort_compare(struct _tuple *o1, struct _tuple *o2, int max) {
+static int max;
+typedef const struct _tuple_node ** box_item;
+int tuple_box_median_sort_compar(const void *o1, const void *o2) {
 	switch (max) {
 	case 0:
-		return o1->r - o2->r;
+		return (*((box_item) o1))->value->r - (*((box_item) o2))->value->r;
 	case 1:
-		return o1->g - o2->g;
+		return (*((box_item) o1))->value->g - (*((box_item) o2))->value->g;
 	case 2:
-		return o1->b - o2->b;
+		return (*((box_item) o1))->value->b - (*((box_item) o2))->value->b;
 	default:
 		return 0;
 	}
 }
 
-void tuple_box_median_sort(struct _tuple_box *boxes){
-	memset(boxes->limit, 0, sizeof(uint32_t) * 6);
+void tuple_box_median_sort(struct _tuple_box *box) {
+	memset(box->limit, 0, sizeof(uint32_t) * 6);
 
-	struct _tuple_node *item = boxes->data;
-	while (item != NULL) {
-		tuple_box_median_sort_each(item->value, boxes);
-		item = item->next;
+	struct _tuple_node **swap = (struct _tuple_node**) malloc(
+			sizeof(struct _tuple_node*) * box->size);
+
+	size_t i;
+	struct _tuple_node *item;
+	for (i = 0, item = box->data; item != NULL; item = item->next) {
+		tuple_box_median_sort_each(item->value, box);
+		swap[i++] = item;
 	}
 
-	int32_t max;
-
-	int r = boxes->limit[0] - boxes->limit[1];
-	int g = boxes->limit[2] - boxes->limit[3];
-	int b = boxes->limit[4] - boxes->limit[5];
-
+	int r = box->limit[0] - box->limit[1];
+	int g = box->limit[2] - box->limit[3];
+	int b = box->limit[4] - box->limit[5];
 	if (r >= g && r >= b) {
 		max = 0;
 	} else if (g >= r && g >= b) {
@@ -245,99 +257,80 @@ void tuple_box_median_sort(struct _tuple_box *boxes){
 		max = 0;
 	}
 
-	struct _tuple_node *prev;
-	struct _tuple_node *curr;
-	struct _tuple_node *temp;
+	qsort(swap, box->size, sizeof(struct _tuple_node*),
+			&tuple_box_median_sort_compar);
 
-	struct _tuple_node *swap = boxes->data;
-	boxes->data = boxes->data->next;
-	swap->next = NULL;
-
-	int32_t diff;
-	while (boxes->data != NULL) {
-		temp = boxes->data;
-		boxes->data = boxes->data->next;
-		for (prev = NULL, curr = swap; curr != NULL; curr = curr->next) {
-			diff = tuple_box_median_sort_compare(temp->value, curr->value, max);
-			if (diff <= 0) {
-				if (prev == NULL) {
-					temp->next = swap;
-					swap = temp;
-				} else {
-					prev->next = temp;
-					temp->next = curr;
-				}
-				break;
-			}
-			prev = curr;
-		}
+	box->data = NULL;
+	for (i = 0; i < box->size; ++i) {
+		item = swap[i];
+		item->next = box->data;
+		box->data = item;
 	}
 
-	boxes->data = swap;
+	free(swap);
 }
 
-void tuple_box_median_cut(uint32_t index, struct _tuple_box *boxes) {
+void tuple_box_median_cut(uint32_t index, struct _tuple_box **boxes) {
 
-	if (boxes[index].count <= 1) {
+	struct _tuple_box *box = boxes[index];
+	if (box->count <= 1) {
 		return;
 	}
 
+	tuple_box_median_sort(box);
+	box->count = box->count / 2;
 
-	uint32_t start;
-	fprintf(stderr, "----------------------->:>1\n");
-	tuple_box_median_sort(boxes + index);
-	fprintf(stderr, "----------------------->:>2\n");
-	boxes[index].count = boxes[index].count / 2;
+	struct _tuple_box *newBox = (struct _tuple_box *) malloc(
+			sizeof(struct _tuple_box));
+	memset(newBox, 0, sizeof(struct _tuple_box));
+	newBox->start = box->start + box->count;
+	newBox->count = box->count;
 
-	start = boxes[index].start + boxes[index].count;
-	boxes[start].start = start;
-	boxes[start].count = boxes[index].count;
+	uint32_t i;
+	struct _tuple_node *item;
+	uint32_t limit = box->size / 2;
+	for (i = 0; box->data != NULL && i < limit; ++i) {
 
-	uint32_t size = boxes[index].size / 2;
+		item = box->data;
+		box->data = item->next;
 
+		item->next = newBox->data;
+		newBox->data = item;
 
-	struct _tuple_node *item = boxes[index].data;
-	uint32_t i=0;
-	while (item != NULL && i < size) {
-		fprintf(stderr, "----------------------->:%lu:\n", i);
-		boxes[index].data = item->next;
-
-		item->next = boxes[start].data;
-		boxes[start].data = item;
-
-		boxes[index].size -= 1;
-		boxes[start].size += 1;
-
-		item = boxes[index].data;
-		++i;
+		box->size -= 1;
+		newBox->size += 1;
 	}
+
+	boxes[newBox->start] = newBox;
 
 	tuple_box_median_cut(index, boxes);
 }
 
-void tuple_box_median_dump(struct _tuple_box *boxes) {
+void tuple_box_median_dump(struct _tuple_box *box) {
+	memset(&box->value, 0, sizeof(struct _tuple));
+
 	struct _tuple_node *item;
-	for (item = boxes->data; item != NULL; item = item->next) {
-		boxes->value.r += item->value->r;
-		boxes->value.g += item->value->g;
-		boxes->value.b += item->value->b;
+	for (item = box->data; item != NULL; item = item->next) {
+		box->value.r += item->value->r;
+		box->value.g += item->value->g;
+		box->value.b += item->value->b;
 	}
 
-	boxes->value.r = (boxes->value.r / boxes->size) & 0xFF;
-	boxes->value.g = (boxes->value.g / boxes->size) & 0xFF;
-	boxes->value.b = (boxes->value.b / boxes->size) & 0xFF;
+	box->value.r = (box->value.r / box->size) & 0xFF;
+	box->value.g = (box->value.g / box->size) & 0xFF;
+	box->value.b = (box->value.b / box->size) & 0xFF;
 }
 
-void tuple_box_find_index(struct _tuple *tuple, struct _tuple_box *boxes,
+void tuple_box_find_index(struct _tuple *tuple, struct _tuple_box **boxes,
 		size_t size, int32_t **distMap) {
 
 	int cache;
-	int distance = UINT_MAX;
+	int distance = INT_MAX;
 
 	size_t i, index = 0;
 	struct _tuple *item;
 	for (i = 0; i < size; ++i) {
-		item = &boxes[i].value;
+		item = &(boxes[i]->value);
 		cache = distMap[tuple->r][item->r] + distMap[tuple->g][item->g]
 				+ distMap[tuple->b][item->b];
 		if (cache < distance) {
@@ -349,19 +342,9 @@ void tuple_box_find_index(struct _tuple *tuple, struct _tuple_box *boxes,
 	tuple->i = index;
 }
 
-bool tuple_box_contains(struct _tuple *tuple, struct _tuple_box *boxes) {
-	struct _tuple_node *item;
-	for (item = boxes->data; item != NULL; item = item->next) {
-		if (tuple->r == item->value->r && tuple->g == item->value->g
-				&& tuple->b == item->value->b) {
-			return true;
-		}
-	}
+int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
+		int32_t **dist) {
 
-	return false;
-}
-
-int remap(int32_t *pixels, size_t size) {
 	struct _tuple_map matrix;
 	matrix.buckets = NULL;
 	matrix.capacity = 0;
@@ -369,48 +352,48 @@ int remap(int32_t *pixels, size_t size) {
 
 	tuple_map_reset(&matrix, 4096);
 
-	uint32_t i,j;
+	uint32_t i;
 	int32_t key;
 	for (int i = 0; i < size; ++i) {
 		key = pixels[i];
 		tuple_map_add_tuple(&matrix, key, tuple_create(key));
 	}
 
-	size_t length = sizeof(struct _tuple_box) * COLOR_SIZE;
-	struct _tuple_box *boxes = (struct _tuple_box*) malloc(length);
+	size_t length = sizeof(struct _tuple_box*) * COLOR_SIZE;
+	struct _tuple_box **boxes = (struct _tuple_box**) malloc(length);
 	memset(boxes, 0, length);
-
 	{
-		boxes[0].start = 0;
-		boxes[0].count = COLOR_SIZE;
-		tuple_map_copy_tuple(&matrix, boxes);
+		boxes[0] = (struct _tuple_box *) malloc(sizeof(struct _tuple_box));
+		memset(boxes[0], 0, sizeof(struct _tuple_box));
+		boxes[0]->count = COLOR_SIZE;
+		tuple_map_copy_tuple(&matrix, boxes[0]);
+
+		size_t j = 0;
 		for (i = 0; i < COLOR_SIZE; ++i) {
+
 			tuple_box_median_cut(i, boxes);
-			//tuple_box_median_dump(boxes + i);
+			tuple_box_median_dump(boxes[i]);
+
+			map[j++] = boxes[i]->value.r;
+			map[j++] = boxes[i]->value.g;
+			map[j++] = boxes[i]->value.b;
 		}
 	}
 
+	struct _tuple *tuple;
 	{
-		int32_t **distMap = (int32_t **) malloc(sizeof(int32_t *) * 256);
-		for (i = 0; i < 256; ++i) {
-			distMap[i] = (int32_t *) malloc(sizeof(int32_t) * 256);
-			for (j = 0; j < 256; ++j) {
-				distMap[i][j] = (i - j) * (i - j);
-			}
-		}
-
-		struct _tuple *tuple;
-		for (i = 0 ; i < size; ++i) {
-			tuple = tuple_map_get_tuple(&matrix, pixels[i] & 0xFFFFFF);
-			if(tuple_box_contains(tuple,boxes)){
-				continue;
-			}else if(tuple->i==-1){
-				tuple_box_find_index(tuple,boxes,COLOR_SIZE,distMap);
+		for (i = 0; i < size; ++i) {
+			tuple = tuple_map_get_tuple(&matrix, pixels[i]);
+			if (tuple->i == -1) {
+				tuple_box_find_index(tuple, boxes, COLOR_SIZE, dist);
 			}
 
-			pixels[i] = tuple_to_rgb(&boxes[tuple->i].value);
+			indexes[i] = tuple->i;
 		}
 	}
+
+	tuple_box_free(boxes,COLOR_SIZE);
+	tuple_map_free(&matrix);
 
 	return 0;
 }
