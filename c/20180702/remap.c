@@ -44,9 +44,9 @@ uint32_t tuple_map_index(uint32_t key, size_t capacity) {
 void tuple_map_reset(struct _tuple_map *map, size_t capacity) {
 
 	struct _tuple_node **temp = map->buckets;
-	map->buckets = (struct _tuple_node**) malloc(
-			sizeof(struct _tuple *) * capacity);
-	memset(map->buckets, 0, capacity);
+	size_t size = sizeof(struct _tuple *) * capacity;
+	map->buckets = (struct _tuple_node**) malloc(size);
+	memset(map->buckets, 0, size);
 
 	size_t i;
 	uint32_t hash;
@@ -69,16 +69,9 @@ void tuple_map_reset(struct _tuple_map *map, size_t capacity) {
 	free(temp);
 }
 
-
-
-
-
-
-
 struct _tuple *tuple_map_get_tuple(struct _tuple_map *map, uint32_t key) {
 
 	struct _tuple_node *item;
-
 	uint32_t hash = tuple_map_index(key, map->capacity);
 	for (item = map->buckets[hash]; item != NULL; item = item->next) {
 		if (item->key == key) {
@@ -139,7 +132,6 @@ void tuple_map_copy_tuple(struct _tuple_map *map, struct _tuple_box *box) {
 	}
 }
 
-
 void tuple_box_free(struct _tuple_box **boxes, size_t size) {
 
 	size_t i;
@@ -176,7 +168,6 @@ void tuple_map_free(struct _tuple_map *map) {
 	map->buckets = NULL;
 	map->size = 0;
 }
-
 
 struct _tuple * tuple_create(uint32_t pixel) {
 	struct _tuple *item = (struct _tuple*) malloc(sizeof(struct _tuple));
@@ -307,6 +298,10 @@ void tuple_box_median_cut(uint32_t index, struct _tuple_box **boxes) {
 }
 
 void tuple_box_median_dump(struct _tuple_box *box) {
+	if (box->size < 1) {
+		return;
+	}
+
 	memset(&box->value, 0, sizeof(struct _tuple));
 
 	struct _tuple_node *item;
@@ -330,6 +325,9 @@ void tuple_box_find_index(struct _tuple *tuple, struct _tuple_box **boxes,
 	size_t i, index = 0;
 	struct _tuple *item;
 	for (i = 0; i < size; ++i) {
+		if (boxes[i]->size < 1) {
+			continue;
+		}
 		item = &(boxes[i]->value);
 		cache = distMap[tuple->r][item->r] + distMap[tuple->g][item->g]
 				+ distMap[tuple->b][item->b];
@@ -342,20 +340,23 @@ void tuple_box_find_index(struct _tuple *tuple, struct _tuple_box **boxes,
 	tuple->i = index;
 }
 
-int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
+int remap(uint8_t *buffer, uint8_t *indexes, size_t size, uint8_t *map,
 		int32_t **dist) {
-
 	struct _tuple_map matrix;
 	matrix.buckets = NULL;
 	matrix.capacity = 0;
 	matrix.size = 0;
 
 	tuple_map_reset(&matrix, 4096);
+	size_t i;
+	uint32_t key;
+	int r, g, b;
 
-	uint32_t i;
-	int32_t key;
-	for (int i = 0; i < size; ++i) {
-		key = pixels[i];
+	for (i = 0; i < size; i += 3) {
+		r = buffer[i];
+		g = buffer[i + 1];
+		b = buffer[i + 2];
+		key = b | (g << 8) | (r << 16);
 		tuple_map_add_tuple(&matrix, key, tuple_create(key));
 	}
 
@@ -367,13 +368,10 @@ int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
 		memset(boxes[0], 0, sizeof(struct _tuple_box));
 		boxes[0]->count = COLOR_SIZE;
 		tuple_map_copy_tuple(&matrix, boxes[0]);
-
 		size_t j = 0;
 		for (i = 0; i < COLOR_SIZE; ++i) {
-
 			tuple_box_median_cut(i, boxes);
 			tuple_box_median_dump(boxes[i]);
-
 			map[j++] = boxes[i]->value.r;
 			map[j++] = boxes[i]->value.g;
 			map[j++] = boxes[i]->value.b;
@@ -382,8 +380,15 @@ int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
 
 	struct _tuple *tuple;
 	{
-		for (i = 0; i < size; ++i) {
-			tuple = tuple_map_get_tuple(&matrix, pixels[i]);
+		size_t index;
+		size = size / 3;
+		for (int i = 0; i < size; ++i) {
+			index = i * 3;
+			r = buffer[index];
+			g = buffer[index + 1];
+			b = buffer[index + 2];
+			key = b | (g << 8) | (r << 16);
+			tuple = tuple_map_get_tuple(&matrix, key);
 			if (tuple->i == -1) {
 				tuple_box_find_index(tuple, boxes, COLOR_SIZE, dist);
 			}
@@ -392,7 +397,7 @@ int remap(uint32_t *pixels, uint8_t *indexes, size_t size, uint8_t *map,
 		}
 	}
 
-	tuple_box_free(boxes,COLOR_SIZE);
+	tuple_box_free(boxes, COLOR_SIZE);
 	tuple_map_free(&matrix);
 
 	return 0;
