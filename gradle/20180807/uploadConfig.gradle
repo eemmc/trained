@@ -1,0 +1,38 @@
+apply plugin: 'maven'
+
+static def checkSnapShotPackage(versionName) {
+    if (versionName.endsWith("-SNAPSHOT")) {
+        return "http://192.168.5.140/nexus/content/repositories/snapshots/"
+    } else {
+        return "http://192.168.5.140/nexus/content/repositories/releases/"
+    }
+}
+
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.groupId = "com.behuh.android"
+                pom.packaging = "jar"
+
+                pom.artifactId = "${project.name}"
+                pom.version = "${project.version}"
+
+                repository(url: checkSnapShotPackage(pom.version)) {
+                    authentication(userName: "admin", password: "admin123")
+                }
+            }
+        }
+    }
+
+
+    task javaSourcesJar(type: Jar, dependsOn:classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives javaSourcesJar
+    }
+}
+

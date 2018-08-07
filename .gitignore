@@ -1,3 +1,4 @@
+*.elf
 *.iml
 *.jar
 *.class
